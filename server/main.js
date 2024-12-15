@@ -3,16 +3,17 @@ import 'dotenv/config'
 import userRoute from "./routes/users.js";
 import products from "./routes/products.js";
 import bodyParser from "body-parser";
-import pool from './db/index.js'
-
+import pool from './db/index.js';
+import cors from "cors";
 const app = express();
 
 const port = process.env.PORT || 3030
 
-app.use((req, res, next) => {
-  console.log("First middleware")
-  next()
-})
+// app.use((req, res, next) => {
+//   // console.log("First middleware")
+//   next()
+// })
+app.use((cors()));
 app.use(bodyParser.json());
 app.use("/", userRoute)
 app.use("/", products)
@@ -25,15 +26,16 @@ app.get('/', async (req, res) => {
   try {
     const results = await pool.query('SELECT * FROM products');
     res.send(results.rows);
+    console.log(results.rows )
   } catch (err) {
-    console.error(err);
+    // console.error(err);
     res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
 app.post("/product/create", async (req, res) =>{
   await pool.query("INSERT INTO products (name, price) VALUES ($1, $2)", [req.body.name, req.body.price])
-  console.log(req.body)
+  // console.log(req.body)
   res.send("Data added")
 })
 
@@ -45,5 +47,11 @@ app.get("/user/:id", async (req, res) =>{
   } catch (error) {
     res.status(500)
   }
+})
 
+app.put("/user/:id/update",async (req, res) =>{
+  await pool.query("UPDATE products SET name=$1, price=$2 where id=$3",
+    [req.body.name, req.body.price, req.params.id]
+  )
+  //  console.log(`ID reached at ${req.params.id}`)
 })
